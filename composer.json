@@ -2,7 +2,7 @@
     "name": "eftec/services_json",
     "description": "PHP implementaion of json_encode/decode",
     "type": "library",
-    "license": "BSD",
+    "license": "BSD-2-Clause",
     "autoload": {
         "psr-4": {
             "eftec\\ServicesJson\\": "src/"

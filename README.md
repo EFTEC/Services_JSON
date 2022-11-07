@@ -1,5 +1,5 @@
 # Services_JSON
-PHP implementaion of json_encode/decode
+PHP implementaion of json_encode/decode for PHP 7.1 and higher.
 
 [![Packagist](https://img.shields.io/packagist/v/eftec/services_json.svg)](https://packagist.org/packages/eftec/services_json)
 [![Total Downloads](https://poser.pugx.org/eftec/services_json/downloads)](https://packagist.org/packages/eftec/services_json)
