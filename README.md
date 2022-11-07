@@ -1,5 +1,5 @@
 # Services_JSON
-PHP implementaion of json_encode/decode for PHP 7.1 and higher.
+PHP implementation of json_encode/decode for PHP 7.2 and higher.  This library works with and without quoted keys.
 
 [![Packagist](https://img.shields.io/packagist/v/eftec/services_json.svg)](https://packagist.org/packages/eftec/services_json)
 [![Total Downloads](https://poser.pugx.org/eftec/services_json/downloads)](https://packagist.org/packages/eftec/services_json)
@@ -25,37 +25,58 @@ and can be directly eval() with no further parsing overhead.
 
 ## So, what is the goal with this version?
 
-While this version doesn't have a better performance than json_encode() and json_decode() available as extension, 
-it has the next features:
+While this version doesn't have a better performance than **json_encode()** and **json_decode()** available as extension, 
+but it has the next features:
 
-[x] it doesn't require an extension. If you can't install an extension, then you can use this version.
-[x] **it works with json with unquoted keys** (for example javascript notation)
-[x] It is a simple file with no dependency.
+- [x]  it doesn't require an extension. If you can't install ext-json, then you can use this version.
+
+- [x] **it works with JSON with unquoted keys** (for example JavaScript notation)
+- [x] It is a simple .php file with no dependency.
 
 ## Usage
 
-### Getting started
+### Getting started using composer
 
-* Install the library using composer (or you could download Services_JSON.php manually)
+1. Install the library using composer
 ```shell
 composer require eftec/services_json
 ```
-* Include the dependency
+2. Include the dependency
 ```php
 use eftec\ServicesJson\Services_JSON;
 include '../vendor/autoload.php';
 $s=new Services_JSON();
 ```
 
-* And creates a service class
+3. And creates a service class
 ```php
 $s=new Services_JSON();
 ```
 See the folder examples for further examples
 
+### Getting started without composer
+
+1. Copy this file: [Services_JSON/Services_JSON.php](https://github.com/EFTEC/Services_JSON/blob/main/src/Services_JSON.php)
+
+2. Include the file
+
+   ```php
+   use eftec\ServicesJson\Services_JSON;
+   include 'Services_JSON.php'; // or where is located the file.
+   $s=new Services_JSON();
+   ```
+
+3. And create the service class
+
+   ```php
+   $s=new Services_JSON();
+   ```
+
+   
+
 ### Decode
 
-Decode transform (decodified) a json string into a stdclass or an associative array
+Decode transform (de-codified) a JSON string into a stdclass or an associative array
 
 ```php
 $s=new Services_JSON();
@@ -87,10 +108,10 @@ var_dump($s->encode($obj)); // encode an object
 ## Changelog
 
 * 1.1
-  * It works with PHP 7.2 and higher.  
+  * It works with PHP 7.2 and higher (including PHP 8.0 and 8.1)
   * It doesn't require PECL to work.
   * The code was cleaned
-  * web header is removed.
+  * Web header is removed.
   * Method decode() could return an associative array.
 * 1.0.3-1.0.0 PECL version. It only works with PHP 4.x and PHP 5.x
 
