@@ -1,8 +1,8 @@
 # Services_JSON
 PHP implementaion of json_encode/decode
 
-[![Packagist](https://img.shields.io/packagist/v/eftec/services_json.svg)](https://packagist.org/packages/eftec/bladeone)
-[![Total Downloads](https://poser.pugx.org/eftec/services_json/downloads)](https://packagist.org/packages/eftec/bladeone)
+[![Packagist](https://img.shields.io/packagist/v/eftec/services_json.svg)](https://packagist.org/packages/eftec/services_json)
+[![Total Downloads](https://poser.pugx.org/eftec/services_json/downloads)](https://packagist.org/packages/eftec/services_json)
 [![Maintenance](https://img.shields.io/maintenance/yes/2022.svg)]()
 [![composer](https://img.shields.io/badge/composer-%3E1.6-blue.svg)]()
 [![php](https://img.shields.io/badge/php-7.x-green.svg)]()
