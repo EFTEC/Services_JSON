@@ -53,12 +53,12 @@ See the folder examples for further examples
 
 ### Decode
 
-Decode transform (de-codified) a JSON string into a stdclass or an associative array
+Decode a JSON string into a stdclass or an associative array
 
 ```php
 $json='{"hello":{"a":2,"b":3},"world":[1,2,3,"aaa"]}';
 var_dump(Services_JSON::decode($json)); // as stdclass
-var_dump(Services_JSON::decode($json,Services_JSON::SERVICES_JSON_AS_ARRAY)); // as array
+var_dump(Services_JSON::decode($json,Services_JSON::GET_ARRAY)); // as array
 ```
 It also works with unquoted keys
 
@@ -66,8 +66,17 @@ It also works with unquoted keys
 
 $json='{hello:{a:2,b:3},world:[1,2,3,"aaa","bbbb"]}';  // the keys are unquoted.
 var_dump(Services_JSON::decode($json)); // as stdclass
-var_dump(Services_JSON::decode($json,Services_JSON::SERVICES_JSON_AS_ARRAY)); // as array
+var_dump(Services_JSON::decode($json,Services_JSON::GET_ARRAY)); // as array
 ```
+
+It also works (with the flag Services_JSON::DECODE_FIX_ROOT) where the string misses [] and {} at the start of the code
+
+```php
+Services_JSON::decode('1,2,3',Services_JSON::GET_ARRAY | Services_JSON::DECODE_FIX_ROOT); // returns [1,2,3]
+Services_JSON::decode('"k1":"v1", k2:2',Services_JSON::GET_ARRAY | Services_JSON::DECODE_FIX_ROOT) // returns [ 'k1' => 'v1','k2'=>2]
+```
+
+
 
 ### Encode
 
@@ -83,7 +92,10 @@ var_dump(Services_JSON::encode($obj)); // encode an object
 
 ## Changelog
 
-* 2.0
+* 2.3
+  * Fixed a typo with a comment.
+  * added phpunit. The entire code is tested but special codification.
+* 2.2
   * Now the library is static, so you can call the methods without creating an instance.
   * If you want to work with the non-static library, then install 1.1
 * 1.1

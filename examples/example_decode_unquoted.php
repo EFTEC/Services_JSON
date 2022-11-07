@@ -16,5 +16,5 @@ var_dump(Services_JSON::decode($json));
 echo "</pre>";
 echo "Decode as array:<br>";
 echo "<pre>";
-var_dump(Services_JSON::decode($json,Services_JSON::SERVICES_JSON_AS_ARRAY));
+var_dump(Services_JSON::decode($json,Services_JSON::GET_ARRAY));
 echo "</pre>";

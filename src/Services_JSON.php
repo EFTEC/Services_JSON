@@ -1,5 +1,5 @@
 <?php
-/** @noinspection PhpUndefinedVariableInspection
+/**
  * @noinspection TypeUnsafeArraySearchInspection
  * @noinspection PhpComposerExtensionStubsInspection
  * @noinspection TypeUnsafeComparisonInspection
@@ -63,34 +63,36 @@ use stdClass;
  * Brief example of use:
  *
  * <code>
- * // create a new instance of Services_JSON
- * $json = new Services_JSON();
  *
  * // convert a complexe value to JSON notation, and send it to the browser
  * $value = array('foo', 'bar', array(1, 2, 'baz'), array(3, array(4)));
- * $output = $json->encode($value);
+ * $output = Services_JSON::encode($value);
  *
  * print($output);
  * // prints: ["foo","bar",[1,2,"baz"],[3,[4]]]
  *
  * // accept incoming POST data, assumed to be in JSON notation
  * $input = file_get_contents('php://input', 1000000);
- * $value = $json->decode($input);
+ * $value = Services_JSON::decode($input);
  * </code>
  */
 class Services_JSON
 {
-    public const SERVICES_JSON_SLICE = 1;
-    public const SERVICES_JSON_IN_STR = 2;
-    public const SERVICES_JSON_IN_ARR = 3;
-    public const SERVICES_JSON_IN_OBJ = 4;
-    public const SERVICES_JSON_IN_CMT = 5;
+    protected const SLICE = 1;
+    protected const IN_STR = 2;
+    protected const IN_ARR = 3;
+    protected const IN_OBJ = 4;
+    protected const IN_CMT = 5;
+    /** @var int the value returned will be an array instead of a stdclass */
+    public const GET_ARRAY = 16;
+    /** @var int supresses the errors and replaces by a null */
+    public const SUPPRESS_ERRORS = 32;
+    /** @var int supports to-json */
+    public const USE_TO_JSON = 64;
+    /** @var int If the fix value is broken, then it adds [] or {} automatically */
+    public const DECODE_FIX_ROOT = 128;
 
-    public const SERVICES_JSON_AS_ARRAY = 16;
-    public const SERVICES_JSON_SUPPRESS_ERRORS = 32;
-    public const SERVICES_JSON_USE_TO_JSON = 64;
-
-    protected static $use=0;
+    protected static $use = 0;
     // private - cache the mbstring lookup results..
     protected static $_mb_strlen = false;
     protected static $_mb_substr = false;
@@ -106,7 +108,7 @@ class Services_JSON
 
     protected static function init(?int $use = null): void
     {
-        if($use!==null) {
+        if ($use !== null) {
             self::$use = $use;
         }
         self::$_mb_strlen = function_exists('mb_strlen');
@@ -134,16 +136,16 @@ class Services_JSON
         switch (true) {
             case ((0x7F & $bytes) == $bytes):
                 // this case should never be reached, because we are in ASCII range
-                // see: http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                // see: https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                 return chr(0x7F & $bytes);
             case (0x07FF & $bytes) == $bytes:
                 // return a 2-byte UTF-8 character
-                // see: http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                // see: https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                 return chr(0xC0 | (($bytes >> 6) & 0x1F))
                     . chr(0x80 | ($bytes & 0x3F));
             case (0xFFFF & $bytes) == $bytes:
                 // return a 3-byte UTF-8 character
-                // see: http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                // see: https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                 return chr(0xE0 | (($bytes >> 12) & 0x0F))
                     . chr(0x80 | (($bytes >> 6) & 0x3F))
                     . chr(0x80 | ($bytes & 0x3F));
@@ -170,17 +172,17 @@ class Services_JSON
         switch (self::strlen8($utf8)) {
             case 1:
                 // this case should never be reached, because we are in ASCII range
-                // see: http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                // see: https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                 return $utf8;
             case 2:
                 // return a UTF-16 character from a 2-byte UTF-8 char
-                // see: http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                // see: https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                 return chr(0x07 & (ord($utf8[0]) >> 2))
                     . chr((0xC0 & (ord($utf8[0]) << 6))
                         | (0x3F & ord($utf8[1])));
             case 3:
                 // return a UTF-16 character from a 3-byte UTF-8 char
-                // see: http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                // see: https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                 return chr((0xF0 & (ord($utf8[0]) << 4))
                         | (0x0F & (ord($utf8[1]) >> 2)))
                     . chr((0xC0 & (ord($utf8[1]) << 6))
@@ -201,7 +203,7 @@ class Services_JSON
      * @return   mixed   JSON string representation of input var or an error if a problem occurs
      * @access   public
      */
-    public static function encode($var,$use=0)
+    public static function encode($var, $use = 0)
     {
         //header('Content-type: application/json');
         self::init($use);
@@ -290,7 +292,7 @@ class Services_JSON
                             break;
                         case (($ord_var_c & 0xE0) == 0xC0):
                             // characters U-00000080 - U-000007FF, mask 110XXXXX
-                            // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                            // see https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                             if ($c + 1 >= $strlen_var) {
                                 ++$c;
                                 $ascii .= '?';
@@ -308,7 +310,7 @@ class Services_JSON
                                 break;
                             }
                             // characters U-00000800 - U-0000FFFF, mask 1110XXXX
-                            // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                            // see https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                             $char = pack('C*', $ord_var_c,
                                 @ord($var[$c + 1]),
                                 @ord($var[$c + 2]));
@@ -323,7 +325,7 @@ class Services_JSON
                                 break;
                             }
                             // characters U-00010000 - U-001FFFFF, mask 11110XXX
-                            // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                            // see https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                             $char = pack('C*', $ord_var_c,
                                 ord($var[$c + 1]),
                                 ord($var[$c + 2]),
@@ -334,7 +336,7 @@ class Services_JSON
                             break;
                         case (($ord_var_c & 0xFC) == 0xF8):
                             // characters U-00200000 - U-03FFFFFF, mask 111110XX
-                            // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                            // see https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                             if ($c + 4 >= $strlen_var) {
                                 $c += 4;
                                 $ascii .= '?';
@@ -356,7 +358,7 @@ class Services_JSON
                                 break;
                             }
                             // characters U-04000000 - U-7FFFFFFF, mask 1111110X
-                            // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                            // see https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                             $char = pack('C*', $ord_var_c,
                                 ord($var[$c + 1]),
                                 ord($var[$c + 2]),
@@ -410,12 +412,12 @@ class Services_JSON
                 return '[' . implode(',', $elements) . ']';
             case 'object':
                 // support toJSON methods.
-                if ((self::$use & self::SERVICES_JSON_USE_TO_JSON) && method_exists($var, 'toJSON')) {
+                if ((self::$use & self::USE_TO_JSON) && method_exists($var, 'toJSON')) {
                     // this may end up allowing unlimited recursion, so we check the return value to make sure it's
                     // not got the same method.
                     $recode = $var->toJSON();
                     if (method_exists($recode, 'toJSON')) {
-                        if ((self::$use & self::SERVICES_JSON_SUPPRESS_ERRORS)) {
+                        if ((self::$use & self::SUPPRESS_ERRORS)) {
                             return 'null';
                         }
                         self::Services_JSON_Error(get_class($var) .
@@ -434,7 +436,7 @@ class Services_JSON
                 }
                 return '{' . implode(',', $properties) . '}';
             default:
-                if ((self::$use & self::SERVICES_JSON_SUPPRESS_ERRORS)) {
+                if ((self::$use & self::SUPPRESS_ERRORS)) {
                     return 'null';
                 }
                 self::Services_JSON_Error(gettype($var) . " can not be encoded as JSON string");
@@ -486,29 +488,50 @@ class Services_JSON
      *
      * @param string $str JSON-formatted string
      * @param int    $use object behavior flags; combine with boolean-OR possible values:<br>
-     *                           - <b>self::SERVICES_JSON_LOOSE_TYPE</b>:  loose typing.<br>
-     *                                   "{...}" syntax creates associative arrays<br>
-     *                                   instead of objects in decode().<br>
-     *                           - <b>self::SERVICES_JSON_SUPPRESS_ERRORS</b>:  error suppression.<br>
-     *                                   Values which can't be encoded (e.g. resources)<br>
-     *                                   appear as NULL instead of throwing errors.<br>
-     *                                   By default, a deeply-nested resource will<br>
-     *                                   bubble up with an error, so all return values<br>
-     *                                   from encode() should be checked with isError()<br>
-     *                           - <b>self::SERVICES_JSON_USE_TO_JSON</b>:  call toJSON when serializing objects<br>
-     *                                   It serializes the return value from the toJSON call rather<br>
-     *                                   than the object it'self,  toJSON can return associative arrays,<br>
-     *                                   strings or numbers, if you return an object, make sure it does<br>
-     *                                   not have a toJSON method, otherwise an error will occur.<br>
+     *                    - <b>self::SERVICES_JSON_AS_ARRAY</b>:  syntax creates associative arrays<br>
+     *                    instead of objects in decode().<br>
+     *                    - <b>self::SERVICES_JSON_SUPPRESS_ERRORS</b>:  error suppression.<br>
+     *                    Values which can't be encoded (e.g. resources)<br>
+     *                    appear as NULL instead of throwing errors.<br>
+     *                    By default, a deeply-nested resource will<br>
+     *                    bubble up with an error, so all return values<br>
+     *                    from encode() should be checked with isError()<br>
+     *                    - <b>self::SERVICES_JSON_USE_TO_JSON</b>:  call toJSON when serializing objects<br>
+     *                    It serializes the return value from the toJSON call rather<br>
+     *                    than the object it'self,  toJSON can return associative arrays,<br>
+     *                    strings or numbers, if you return an object, make sure it does<br>
+     *                    not have a toJSON method, otherwise an error will occur.<br>
+     *                    -<b>self::SERVICES_JSON_DECODE_FIX_ROOT</b>: Fix the code if the root parenthesis are
+     *                    missing<br> Example: "1,2,3" works as "[1,2,3]" and "a:1,b:2" works as "{a:1,b:2}"
+     *
      * @return   mixed   number, boolean, string, array, or object<br>
      *                             corresponding to given JSON input string.<br>
      *                             See argument 1 to Services_JSON() above for object-output behavior.<br>
      *                             Note that decode() always returns strings<br>
      *                             in ASCII or UTF-8 format!<br>
-     * @access   public
+     * @access       public
+     * @noinspection MultiAssignmentUsageInspection
      */
     public static function decode($str, int $use = 0)
     {
+        if ($use & self::DECODE_FIX_ROOT) {
+            $str = trim($str);
+            $firstChar = $str[0];
+            $lastChar = $str[-1];
+            if ($firstChar !== '{' && $firstChar !== '[' && $lastChar !== '}' && $lastChar !== ']') {
+                // fixing a malformed json-u, if the json-u doesn't start with { [ and ends with ] } then it wraps it
+                // note:: it will fail for a simple value su as "hello", so it will return ["hello"]
+                $p0 = strpos($str, ':'); // content:2,content2:3 =>  {content:2,content2:3}
+                $p0 = $p0 === false ? PHP_INT_MAX : $p0;
+                $p1 = strpos($str, ','); // 2,3  => [2,3]
+                $p1 = $p1 === false ? PHP_INT_MAX : $p1;
+                if ($p0 < $p1) {
+                    $str = '{' . $str . '}';
+                } else {
+                    $str = '[' . $str . ']';
+                }
+            }
+        }
         self::init($use);
         return self::decode2($str);
     }
@@ -519,6 +542,7 @@ class Services_JSON
      * @param $asAssocArray
      * @return array|bool|float|int|mixed|stdClass|string|null
      *
+     * @noinspection PhpUndefinedVariableInspection
      */
     protected static function decode2($str, $asAssocArray = false)
     {
@@ -593,31 +617,31 @@ class Services_JSON
                                 break;
                             case ($ord_chrs_c & 0xE0) == 0xC0:
                                 // characters U-00000080 - U-000007FF, mask 110XXXXX
-                                //see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                                //see https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                                 $utf8 .= self::substr8($chrs, $c, 2);
                                 ++$c;
                                 break;
                             case ($ord_chrs_c & 0xF0) == 0xE0:
                                 // characters U-00000800 - U-0000FFFF, mask 1110XXXX
-                                // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                                // see https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                                 $utf8 .= self::substr8($chrs, $c, 3);
                                 $c += 2;
                                 break;
                             case ($ord_chrs_c & 0xF8) == 0xF0:
                                 // characters U-00010000 - U-001FFFFF, mask 11110XXX
-                                // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                                // see https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                                 $utf8 .= self::substr8($chrs, $c, 4);
                                 $c += 3;
                                 break;
                             case ($ord_chrs_c & 0xFC) == 0xF8:
                                 // characters U-00200000 - U-03FFFFFF, mask 111110XX
-                                // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                                // see https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                                 $utf8 .= self::substr8($chrs, $c, 5);
                                 $c += 4;
                                 break;
                             case ($ord_chrs_c & 0xFE) == 0xFC:
                                 // characters U-04000000 - U-7FFFFFFF, mask 1111110X
-                                // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+                                // see https://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
                                 $utf8 .= self::substr8($chrs, $c, 6);
                                 $c += 5;
                                 break;
@@ -628,23 +652,23 @@ class Services_JSON
                 if (preg_match('/^\[.*]$/s', $str) || preg_match('/^\{.*}$/s', $str)) {
                     // array, or object notation
                     if ($str[0] === '[') {
-                        $stk = [self::SERVICES_JSON_IN_ARR];
+                        $stk = [self::IN_ARR];
                         $arr = [];
                     } else {
-                        $stk = [self::SERVICES_JSON_IN_OBJ];
-                        if (self::$use & self::SERVICES_JSON_AS_ARRAY) {
+                        $stk = [self::IN_OBJ];
+                        if (self::$use & self::GET_ARRAY) {
                             $obj = [];
                         } else {
                             $obj = new stdClass();
                         }
                     }
-                    $stk[] = ['what' => self::SERVICES_JSON_SLICE,
+                    $stk[] = ['what' => self::SLICE,
                         'where' => 0,
                         'delim' => false];
                     $chrs = self::substr8($str, 1, -1);
                     $chrs = self::reduce_string($chrs);
                     if ($chrs == '') {
-                        if (reset($stk) == self::SERVICES_JSON_IN_ARR) {
+                        if (reset($stk) == self::IN_ARR) {
                             return $arr;
                         }
                         return $obj;
@@ -654,16 +678,16 @@ class Services_JSON
                     for ($c = 0; $c <= $strlen_chrs; ++$c) {
                         $top = end($stk);
                         $substr_chrs_c_2 = self::substr8($chrs, $c, 2);
-                        if (($c == $strlen_chrs) || (($chrs[$c] === ',') && ($top['what'] == self::SERVICES_JSON_SLICE))) {
+                        if (($c == $strlen_chrs) || (($chrs[$c] === ',') && ($top['what'] == self::SLICE))) {
                             // found a comma that is not inside a string, array, etc.,
                             // OR we've reached the end of the character list
                             $slice = self::substr8($chrs, $top['where'], ($c - $top['where']));
-                            $stk[] = ['what' => self::SERVICES_JSON_SLICE, 'where' => ($c + 1), 'delim' => false];
+                            $stk[] = ['what' => self::SLICE, 'where' => ($c + 1), 'delim' => false];
                             //print("Found split at {$c}: ".$this->substr8($chrs, $top['where'], (1 + $c - $top['where']))."\n");
-                            if (reset($stk) == self::SERVICES_JSON_IN_ARR) {
+                            if (reset($stk) == self::IN_ARR) {
                                 // we are in an array, so just push an element onto the stack
                                 $arr[] = self::decode2($slice);
-                            } elseif (reset($stk) == self::SERVICES_JSON_IN_OBJ) {
+                            } elseif (reset($stk) == self::IN_OBJ) {
                                 // we are in an object, so figure
                                 // out the property name and set an
                                 // element in an associative array,
@@ -674,59 +698,61 @@ class Services_JSON
                                     // "name":value pair
                                     $key = self::decode2($parts[1]);
                                     $val = self::decode2(trim(substr($slice, strlen($parts[0])), ", \t\n\r\0\x0B"));
-                                    if (self::$use & self::SERVICES_JSON_AS_ARRAY) {
+                                    if (self::$use & self::GET_ARRAY) {
                                         $obj[$key] = $val;
                                     } else {
                                         $obj->$key = $val;
                                     }
-                                } /** @noinspection NotOptimalRegularExpressionsInspection */ elseif (preg_match('/^\s*(\w+)\s*:/Ui', $slice, $parts)) {
+                                } /** @noinspection NotOptimalRegularExpressionsInspection */
+                                    elseif (preg_match('/^\s*(\w+)\s*:/Ui', $slice, $parts)) {
                                     // name:value pair, where name is unquoted
                                     $key = $parts[1];
                                     $val = self::decode2(trim(substr($slice, strlen($parts[0])), ", \t\n\r\0\x0B"));
-                                    if (self::$use & self::SERVICES_JSON_AS_ARRAY) {
+                                    if (self::$use & self::GET_ARRAY) {
                                         $obj[$key] = $val;
                                     } else {
                                         $obj->$key = $val;
                                     }
                                 }
                             }
-                        } elseif ((($chrs[$c] === '"') || ($chrs[$c] === "'")) && ($top['what'] != self::SERVICES_JSON_IN_STR)) {
+                        } elseif ((($chrs[$c] === '"') || ($chrs[$c] === "'")) && ($top['what'] != self::IN_STR)) {
                             // found a quote, and we are not inside a string
-                            $stk[] = ['what' => self::SERVICES_JSON_IN_STR, 'where' => $c, 'delim' => $chrs[$c]];
+                            $stk[] = ['what' => self::IN_STR, 'where' => $c, 'delim' => $chrs[$c]];
                             //print("Found start of string at {$c}\n");
                         } elseif (($chrs[$c] == $top['delim']) &&
-                            ($top['what'] == self::SERVICES_JSON_IN_STR) &&
-                            ((self::strlen8(self::substr8($chrs, 0, $c)) - self::strlen8(rtrim(self::substr8($chrs, 0, $c), '\\'))) % 2 != 1)) {
+                            ($top['what'] == self::IN_STR) &&
+                            ((self::strlen8(self::substr8($chrs, 0, $c)) -
+                                    self::strlen8(rtrim(self::substr8($chrs, 0, $c), '\\'))) % 2 != 1)) {
                             // found a quote, we're in a string, and it's not escaped
                             // we know that it's not escaped becase there is _not_ an
                             // odd number of backslashes at the end of the string so far
                             array_pop($stk);
                             //print("Found end of string at {$c}: ".$this->substr8($chrs, $top['where'], (1 + 1 + $c - $top['where']))."\n");
                         } elseif (($chrs[$c] === '[') &&
-                            in_array($top['what'], [self::SERVICES_JSON_SLICE, self::SERVICES_JSON_IN_ARR, self::SERVICES_JSON_IN_OBJ])) {
+                            in_array($top['what'], [self::SLICE, self::IN_ARR, self::IN_OBJ])) {
                             // found a left-bracket, and we are in an array, object, or slice
-                            $stk[] = ['what' => self::SERVICES_JSON_IN_ARR, 'where' => $c, 'delim' => false];
+                            $stk[] = ['what' => self::IN_ARR, 'where' => $c, 'delim' => false];
                             //print("Found start of array at {$c}\n");
-                        } elseif (($chrs[$c] === ']') && ($top['what'] == self::SERVICES_JSON_IN_ARR)) {
+                        } elseif (($chrs[$c] === ']') && ($top['what'] == self::IN_ARR)) {
                             // found a right-bracket, and we're in an array
                             array_pop($stk);
                             //print("Found end of array at {$c}: ".$this->substr8($chrs, $top['where'], (1 + $c - $top['where']))."\n");
                         } elseif (($chrs[$c] === '{') &&
-                            in_array($top['what'], [self::SERVICES_JSON_SLICE, self::SERVICES_JSON_IN_ARR, self::SERVICES_JSON_IN_OBJ])) {
+                            in_array($top['what'], [self::SLICE, self::IN_ARR, self::IN_OBJ])) {
                             // found a left-brace, and we are in an array, object, or slice
-                            $stk[] = ['what' => self::SERVICES_JSON_IN_OBJ, 'where' => $c, 'delim' => false];
+                            $stk[] = ['what' => self::IN_OBJ, 'where' => $c, 'delim' => false];
                             //print("Found start of object at {$c}\n");
-                        } elseif (($chrs[$c] === '}') && ($top['what'] == self::SERVICES_JSON_IN_OBJ)) {
+                        } elseif (($chrs[$c] === '}') && ($top['what'] == self::IN_OBJ)) {
                             // found a right-brace, and we're in an object
                             array_pop($stk);
                             //print("Found end of object at {$c}: ".$this->substr8($chrs, $top['where'], (1 + $c - $top['where']))."\n");
                         } elseif (($substr_chrs_c_2 === '/*') &&
-                            in_array($top['what'], [self::SERVICES_JSON_SLICE, self::SERVICES_JSON_IN_ARR, self::SERVICES_JSON_IN_OBJ])) {
+                            in_array($top['what'], [self::SLICE, self::IN_ARR, self::IN_OBJ])) {
                             // found a comment start, and we are in an array, object, or slice
-                            $stk[] = ['what' => self::SERVICES_JSON_IN_CMT, 'where' => $c, 'delim' => false];
+                            $stk[] = ['what' => self::IN_CMT, 'where' => $c, 'delim' => false];
                             $c++;
                             //print("Found start of comment at {$c}\n");
-                        } elseif (($substr_chrs_c_2 === '*/') && ($top['what'] == self::SERVICES_JSON_IN_CMT)) {
+                        } elseif (($substr_chrs_c_2 === '*/') && ($top['what'] == self::IN_CMT)) {
                             // found a comment end, and we're in one now
                             array_pop($stk);
                             $c++;
@@ -736,10 +762,10 @@ class Services_JSON
                             //print("Found end of comment at {$c}: ".$this->substr8($chrs, $top['where'], (1 + $c - $top['where']))."\n");
                         }
                     }
-                    if (reset($stk) == self::SERVICES_JSON_IN_ARR) {
+                    if (reset($stk) == self::IN_ARR) {
                         return $arr;
                     }
-                    if (reset($stk) == self::SERVICES_JSON_IN_OBJ) {
+                    if (reset($stk) == self::IN_OBJ) {
                         if ($asAssocArray) {
                             return self::arrayCastRecursive($obj);
                         }
