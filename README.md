@@ -9,27 +9,17 @@ PHP implementation of json_encode/decode for PHP 7.2 and higher.  This library w
 [![php](https://img.shields.io/badge/php-8.x-green.svg)]()
 [![CocoaPods](https://img.shields.io/badge/docs-70%25-yellow.svg)]()
 
-JSON (JavaScript Object Notation, http://json.org) is a lightweight data-interchange format.
-It is easy for humans to read and write. It is easy for machines to parse and generate.
-It is based on a subset of the JavaScript Programming Language, Standard ECMA-262 3rd Edition - December 1999.
-This feature can also be found in Python. JSON is a text format that is completely language independent
-but uses conventions that are familiar to programmers of the C-family of languages, including
-C, C++, C#, Java, JavaScript, Perl, TCL, and many others. These properties make JSON an ideal
-data-interchange language.
-
-This package provides a simple encoder and decoder for JSON notation. It is intended for use
-with client-side Javascript applications that make use of HTTPRequest to perform server
-communication functions - data can be encoded into JSON notation for use in a client-side
-javascript, or decoded from incoming Javascript requests. JSON format is native to Javascript,
-and can be directly eval() with no further parsing overhead.
+This package provides a simple encoder and decoder for JSON notation. It is intended for use with client-side Javascript
+applications that make use of HTTPRequest to perform server communication functions - data can be encoded into JSON 
+notation for use in a client-side javascript, or decoded from incoming Javascript requests. JSON format is native to 
+Javascript, and can be directly eval() with no further parsing overhead.
 
 ## So, what is the goal with this version?
 
-While this version doesn't have a better performance than **json_encode()** and **json_decode()** available as extension, 
-but it has the next features:
+While this version doesn't have a better performance than **json_encode()** and **json_decode()** available as 
+extension, but it has the next features:
 
 - [x]  it doesn't require an extension. If you can't install ext-json, then you can use this version.
-
 - [x] **it works with JSON with unquoted keys** (for example JavaScript notation)
 - [x] It is a simple .php file with no dependency.
 
@@ -95,6 +85,7 @@ var_dump(Services_JSON::encode($obj)); // encode an object
 
 * 2.0
   * Now the library is static, so you can call the methods without creating an instance.
+  * If you want to work with the non-static library, then install 1.1
 * 1.1
   * It works with PHP 7.2 and higher (including PHP 8.0 and 8.1)
   * It doesn't require PECL to work.
