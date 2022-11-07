@@ -45,13 +45,8 @@ composer require eftec/services_json
 ```php
 use eftec\ServicesJson\Services_JSON;
 include '../vendor/autoload.php';
-$s=new Services_JSON();
 ```
 
-3. And creates a service class
-```php
-$s=new Services_JSON();
-```
 See the folder examples for further examples
 
 ### Getting started without composer
@@ -63,34 +58,25 @@ See the folder examples for further examples
    ```php
    use eftec\ServicesJson\Services_JSON;
    include 'Services_JSON.php'; // or where is located the file.
-   $s=new Services_JSON();
    ```
 
-3. And create the service class
-
-   ```php
-   $s=new Services_JSON();
-   ```
-
-   
 
 ### Decode
 
 Decode transform (de-codified) a JSON string into a stdclass or an associative array
 
 ```php
-$s=new Services_JSON();
 $json='{"hello":{"a":2,"b":3},"world":[1,2,3,"aaa"]}';
-var_dump($s->decode($json)); // as stdclass
-var_dump($s->decode($json,true)); // as array
+var_dump(Services_JSON::decode($json)); // as stdclass
+var_dump(Services_JSON::decode($json,Services_JSON::SERVICES_JSON_AS_ARRAY)); // as array
 ```
 It also works with unquoted keys
 
 ```php
-$s=new Services_JSON();
+
 $json='{hello:{a:2,b:3},world:[1,2,3,"aaa","bbbb"]}';  // the keys are unquoted.
-var_dump($s->decode($json)); // as stdclass
-var_dump($s->decode($json,true)); // as array
+var_dump(Services_JSON::decode($json)); // as stdclass
+var_dump(Services_JSON::decode($json,Services_JSON::SERVICES_JSON_AS_ARRAY)); // as array
 ```
 
 ### Encode
@@ -100,13 +86,15 @@ Encode transform a value (array, object, primitive value, etc.) into a json expr
 ```php
 $array=["hello"=>['a'=>2,'b'=>3],'world'=>[1,2,3,"aaa","bbb"]];
 $obj=(object)$array;
-var_dump($s->encode($array));  // encode an associative array
-var_dump($s->encode($obj)); // encode an object
+var_dump(Services_JSON::encode($array));  // encode an associative array
+var_dump(Services_JSON::encode($obj)); // encode an object
 ```
 
 
 ## Changelog
 
+* 2.0
+  * Now the library is static, so you can call the methods without creating an instance.
 * 1.1
   * It works with PHP 7.2 and higher (including PHP 8.0 and 8.1)
   * It doesn't require PECL to work.
