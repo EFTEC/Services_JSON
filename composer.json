@@ -1,0 +1,33 @@
+{
+    "name": "eftec/services_json",
+    "description": "PHP implementaion of json_encode/decode",
+    "type": "library",
+    "license": "BSD",
+    "autoload": {
+        "psr-4": {
+            "eftec\\ServicesJson\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Michal Migurski",
+            "email": "mike-json@teczno.com"
+        },
+        {
+            "name": "Matt Knapp"
+        },
+        {
+            "name": "Brett Stimmerman"
+        },
+        {
+            "name": "jorgecc",
+            "email": "jcastro@eftec.cl"
+        }
+    ],
+    "require": {
+        "php": ">=7.2.5"
+    },
+    "suggest": {
+        "ext-mbstring": "*"
+    }
+}
