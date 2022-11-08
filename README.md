@@ -76,6 +76,9 @@ Services_JSON::decode('1,2,3',Services_JSON::GET_ARRAY | Services_JSON::DECODE_F
 Services_JSON::decode('"k1":"v1", k2:2',Services_JSON::GET_ARRAY | Services_JSON::DECODE_FIX_ROOT) // returns [ 'k1' => 'v1','k2'=>2]
 ```
 
+> Note: DECODE_FIX_ROOT flag detects if the near character is ":" or ",". If the closest character is ":", then it returns
+> an object, otherwise it returns a list.  If there is none, then it returns a list.
+
 
 
 ### Encode
@@ -92,6 +95,9 @@ var_dump(Services_JSON::encode($obj)); // encode an object
 
 ## Changelog
 
+* 2.3.1
+  * deleted unused code
+  * fixed comments.
 * 2.3
   * Fixed a typo with a comment.
   * added phpunit. The entire code is tested but special codification.
