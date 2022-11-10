@@ -20,7 +20,9 @@ While this version doesn't have a better performance than **json_encode()** and 
 extension, but it has the next features:
 
 - [x]  it doesn't require an extension. If you can't install ext-json, then you can use this version.
-- [x] **it works with JSON with unquoted keys** (for example JavaScript notation)
+- [x] **it works with JSON with unquoted keys** (for example JavaScript notation), {aaa:2,bbb:"hello"}
+- [x] **it could also work with unquoted values**  {"aaa":2,"bbb":hello}
+- [x] **it could also work with unwrapped content** "aaa":2,"bbb":"hello" instead of {aaa:2,bbb:"hello"}
 - [x] It is a simple .php file with no dependency.
 
 ## Usage
@@ -115,7 +117,7 @@ var_dump(Services_JSON::encode($obj)); // encode an object
 
 ## Changelog
 * 2.3.2
-  * Added flag to decode DECODE_NO_QUOTE 
+  * Added flag to decode() DECODE_NO_QUOTE 
 * 2.3.1
   * deleted unused code
   * fixed comments.
