@@ -69,7 +69,15 @@ var_dump(Services_JSON::decode($json)); // as stdclass
 var_dump(Services_JSON::decode($json,Services_JSON::GET_ARRAY)); // as array
 ```
 
-It also works (with the flag Services_JSON::DECODE_FIX_ROOT) where the string misses [] and {} at the start of the code
+#### Json unwrapped.
+
+With the flag **Services_JSON::DECODE_FIX_ROOT**, it also works when the origin text misses [] and {} at the start of the code.
+Note, this feature is not foolproof, for example  "[1,2,3],[4,5,6]" will not wrap as "[[1,2,3],[4,5,6]]" 
+
+```
+{"a":222,"b:"ccc"}  # normal json
+"a":222,"b:"ccc"    # json without the root parenthesis.    
+```
 
 ```php
 Services_JSON::decode('1,2,3',Services_JSON::GET_ARRAY | Services_JSON::DECODE_FIX_ROOT); // returns [1,2,3]
@@ -78,6 +86,18 @@ Services_JSON::decode('"k1":"v1", k2:2',Services_JSON::GET_ARRAY | Services_JSON
 
 > Note: DECODE_FIX_ROOT flag detects if the near character is ":" or ",". If the closest character is ":", then it returns
 > an object, otherwise it returns a list.  If there is none, then it returns a list.
+
+#### Json with unquoted values
+
+With the flag **Services_JSON::DECODE_NO_QUOTE** it also works when the string values are not quoted.
+
+>Note: invisible characters at the beginner and at the end (tabs, line carriages) will be trimmed.
+
+```php
+
+Services_JSON::decode('{"a":aaa,"b":bbbb,"c": aaaaa}'
+  , Services_JSON::GET_ARRAY | Services_JSON::DECODE_NO_QUOTE) // ['a'=>'aaa','b'=>'bbbb','c' => 'aaaaa']
+```
 
 
 
@@ -94,10 +114,12 @@ var_dump(Services_JSON::encode($obj)); // encode an object
 
 
 ## Changelog
-
+* 2.3.2
+  * Added flag to decode DECODE_NO_QUOTE 
 * 2.3.1
   * deleted unused code
   * fixed comments.
+  * 25% of the code has been refactored.
 * 2.3
   * Fixed a typo with a comment.
   * added phpunit. The entire code is tested but special codification.

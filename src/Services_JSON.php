@@ -91,6 +91,7 @@ class Services_JSON
     public const USE_TO_JSON = 64;
     /** @var int If the fix value is broken, then it adds [] or {} automatically */
     public const DECODE_FIX_ROOT = 128;
+    public const DECODE_NO_QUOTE = 256;
 
     protected static $use = 0;
     // private - cache the mbstring lookup results..
@@ -709,6 +710,9 @@ class Services_JSON
                         return $obj;
                     }
                 }
+            if(self::$use & self::DECODE_NO_QUOTE) {
+                return $str;
+            }
         }
         return null;
     }

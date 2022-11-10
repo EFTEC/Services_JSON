@@ -32,6 +32,14 @@ final class FirstTest extends TestCase
             ,Services_JSON::decode('"k1":"v1", k2:2',
                 Services_JSON::GET_ARRAY | Services_JSON::DECODE_FIX_ROOT)
         );
+        //
+        $this->assertEquals(
+            [ 'button1' =>["aaaa","bbb","cccc"],
+                'button2' =>["aaaa","bbb","cccc"],
+                'button3' =>["aaaa","bbb","cccc"],]
+            ,Services_JSON::decode('{"button1":["aaaa","bbb","cccc"],"button2":["aaaa","bbb","cccc"],"button3":["aaaa","bbb","cccc"]}',
+            Services_JSON::GET_ARRAY | Services_JSON::DECODE_FIX_ROOT)
+        );
         $this->assertEquals(
             [ 1,2,3]
             ,Services_JSON::decode('1,2,3',
@@ -47,6 +55,16 @@ final class FirstTest extends TestCase
             ,Services_JSON::decode('a:1',
             Services_JSON::GET_ARRAY | Services_JSON::DECODE_FIX_ROOT)
         );
+    }
+    public function testsimple(): void
+    {
+        $this->assertEquals(
+            ['a'=>'aaa','b'=>'bbbb','c' => 'aaaaa']
+            ,Services_JSON::decode('a:aaa,b:bbbb,c: aaaaa',
+            Services_JSON::GET_ARRAY | Services_JSON::DECODE_FIX_ROOT | Services_JSON::DECODE_NO_QUOTE));
+        $this->assertEquals(
+            ['a'=>'aaa','b'=>'bbbb','c' => 'aaaaa']
+            ,Services_JSON::decode('{"a":aaa,"b":bbbb,"c": aaaaa}', Services_JSON::GET_ARRAY | Services_JSON::DECODE_NO_QUOTE));
     }
     public function testEncode(): void
     {
